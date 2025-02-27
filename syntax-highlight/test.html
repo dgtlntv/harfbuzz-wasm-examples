@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Syntax Highlighting Font Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/wasm-feature-detect/dist/umd/index.js"></script>
+    <style>
+        @font-face {
+            font-family: 'SyntaxHighlight';
+            src: url('SyntaxHighlight-Regular.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+        
+        body {
+            font-family: sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .code-sample {
+            font-family: 'SyntaxHighlight', monospace;
+            font-size: 16px;
+            white-space: pre;
+            background-color: #282828;
+            padding: 20px;
+            border-radius: 5px;
+            color: #f8f8f2;
+            line-height: 1.5;
+        }
+        
+        h1 {
+            text-align: center;
+        }
+        
+        #debug-log {
+            background-color: #f0f0f0;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 20px;
+            max-height: 300px;
+            overflow: auto;
+            font-family: monospace;
+            white-space: pre;
+        }
+    </style>
+</head>
+<body>
+    <h1>Syntax Highlighting Font Test</h1>
+    
+    <p>This page tests the SyntaxHighlight-Regular.ttf font with JavaScript code:</p>
+    
+    <div class="code-sample">function calculateArea(radius) {
+  // Calculate the area of a circle
+  const PI = 3.14159;
+  return PI * radius * radius;
+}
+
+// Call the function with radius = 5
+let area = calculateArea(5);
+console.log("The area is: " + area);</div>
+    
+    <p>The font should highlight JavaScript syntax with different colors:</p>
+    <ul>
+        <li style="color: #F92672">Keywords (function, const, return) in pink (#F92672)</li>
+        <li style="color: #AE81FF">Numbers and strings in purple (#AE81FF)</li>
+        <li style="color: #75715E">Comments in gray (#75715E)</li>
+        <li style="color: #66D9EF">Function names in blue (#66D9EF)</li>
+        <li style="color: #F8F8F2">Regular text in light gray (#F8F8F2)</li>
+    </ul>
+    
+    <h2>Debug Log</h2>
+    <div id="debug-log"></div>
+
+    <script>
+        // Function to add debug message to the log
+        function addDebugMessage(message) {
+            const debugLog = document.getElementById('debug-log');
+            const messageElement = document.createElement('div');
+            messageElement.textContent = message;
+            debugLog.appendChild(messageElement);
+            console.log("WASM Debug:", message);
+        }
+
+        // Hook into the browser's FontFace loading
+        // This is just to monitor when our font is loaded
+        document.fonts.ready.then(() => {
+            addDebugMessage("Fonts loaded");
+            
+            // Force a redraw to ensure font is applied
+            const codeSample = document.querySelector('.code-sample');
+            codeSample.style.opacity = '0.99';
+            setTimeout(() => {
+                codeSample.style.opacity = '1';
+                addDebugMessage("Font rendering forced");
+            }, 100);
+        });
+
+        // A more direct way to listen for font loading
+        const fontLoader = new FontFace('SyntaxHighlight', 'url(SyntaxHighlight-Regular.ttf)');
+        fontLoader.load().then(font => {
+            document.fonts.add(font);
+            addDebugMessage("Font explicitly loaded: " + font.family);
+        }).catch(err => {
+            addDebugMessage("Error loading font: " + err);
+        });
+        
+        // Intercept console.error messages that might come from WASM
+        const originalConsoleError = console.error;
+        console.error = function() {
+            originalConsoleError.apply(console, arguments);
+            const message = Array.from(arguments).join(' ');
+            addDebugMessage("ERROR: " + message);
+        };
+        
+        // Try to intercept browser error events that might be related to WASM
+        window.addEventListener('error', function(event) {
+            addDebugMessage("Browser error: " + event.message);
+        });
+
+        // If we want to try to access the WASM directly
+        // Note: This is unlikely to work without specific HarfBuzz integration
+        async function tryAccessWASM() {
+            try {
+                // Check if browser supports WebAssembly
+                if (typeof WebAssembly === 'object') {
+                    addDebugMessage("WebAssembly is supported");
+                    
+                    // Additional feature detection
+                    const features = await Promise.all([
+                        wasmFeatureDetect.threads(),
+                        wasmFeatureDetect.simd(),
+                        wasmFeatureDetect.bulk_memory(),
+                    ]);
+                    
+                    addDebugMessage(`WebAssembly features - threads: ${features[0]}, SIMD: ${features[1]}, bulk memory: ${features[2]}`);
+                } else {
+                    addDebugMessage("WebAssembly is NOT supported");
+                }
+            } catch (err) {
+                addDebugMessage("Error checking WASM: " + err);
+            }
+        }
+        
+        // Run the WASM access check
+        tryAccessWASM();
+    </script>
+</body>
+</html>

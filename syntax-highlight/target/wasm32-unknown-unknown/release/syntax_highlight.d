@@ -1,0 +1,1 @@
+/Users/canonical/Documents/GitHub/harfbuzz-wasm-examples/syntax-highlight/target/wasm32-unknown-unknown/release/syntax_highlight.wasm: /Users/canonical/Documents/GitHub/harfbuzz-wasm-examples/harfbuzz-wasm/src/lib.rs /Users/canonical/Documents/GitHub/harfbuzz-wasm-examples/syntax-highlight/src/lib.rs
